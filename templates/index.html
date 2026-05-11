@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeneScope</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+  <div class="gs-root">
+    <div class="gs-bg-grid"></div>
+
+    <nav class="gs-nav">
+      <div class="gs-logo">
+        <div class="gs-logo-icon">⌬</div>
+        GENESCOPE
+      </div>
+
+      <div class="gs-nav-links">
+        <a href="/" class="gs-nav-link active">Dashboard</a>
+        <a href="/analysis" class="gs-nav-link">Analysis</a>
+        <a href="/visualizations" class="gs-nav-link">Visualizations</a>
+        <a href="/reports" class="gs-nav-link">Reports</a>
+      </div>
+
+      <div class="gs-badge">v2.4.1 · BETA</div>
+    </nav>
+
+    <div class="gs-main">
+      <!-- SIDEBAR -->
+      <aside class="gs-sidebar">
+        <div class="gs-sidebar-label">Workspace</div>
+      
+        <a href="/" class="gs-sidebar-item active">
+          <div class="si-dot"></div> Overview
+        </a>
+      
+        <a href="/datasets" class="gs-sidebar-item">
+          <div class="si-dot"></div> Datasets
+        </a>
+      
+        <a href="/gene-explorer" class="gs-sidebar-item">
+          <div class="si-dot"></div> Gene Explorer
+        </a>
+      
+        <div class="gs-sidebar-label">Analysis</div>
+      
+        <a href="/visualizations" class="gs-sidebar-item">
+          <div class="si-dot"></div> Expression Heatmap
+        </a>
+      
+        <a href="/pca-umap" class="gs-sidebar-item">
+          <div class="si-dot"></div> PCA / UMAP
+        </a>
+      
+        <a href="/analysis" class="gs-sidebar-item">
+          <div class="si-dot"></div> Differential Expr.
+        </a>
+      
+        <a href="/pathways" class="gs-sidebar-item">
+          <div class="si-dot"></div> Pathway Enrichment
+        </a>
+      
+        <div class="gs-sidebar-label">Export</div>
+      
+        <a href="/reports" class="gs-sidebar-item">
+          <div class="si-dot"></div> Reports
+        </a>
+      
+        <a href="/raw-data" class="gs-sidebar-item">
+          <div class="si-dot"></div> Raw Data
+        </a>
+      </aside>
+
+      <main class="gs-content">
+        <div class="gs-page-header">
+          <div>
+            <div class="gs-page-title">Expression Dashboard</div>
+            <div class="gs-page-sub">// {{ uploaded_filename|default("No dataset uploaded") }} · {{
+              num_rows|default("0") }} samples</div>
+          </div>
+
+          <div style="display:flex;gap:8px;">
+            <a href="#upload-section" class="gs-btn gs-btn-ghost" style="text-decoration:none;">
+              + Upload Dataset ↗
+            </a>
+
+            <a href="/analysis" class="gs-btn gs-btn-primary" style="text-decoration:none;">
+              Run Analysis
+            </a>
+          </div>
+        </div>
+
+        <div class="gs-stats">
+          <div class="gs-stat">
+            <div class="gs-stat-label">Genes Detected</div>
+            <div class="gs-stat-value">{{ num_genes|default("—") }}</div>
+            <div class="gs-stat-sub">unique genes detected</div>
+          </div>
+
+          <div class="gs-stat">
+            <div class="gs-stat-label">Samples</div>
+            <div class="gs-stat-value">{{ num_rows|default("—") }}</div>
+            <div class="gs-stat-sub">rows / observations</div>
+          </div>
+
+          <div class="gs-stat">
+            <div class="gs-stat-label">Conditions</div>
+            <div class="gs-stat-value">{{ num_conditions|default("—") }}</div>
+            <div class="gs-stat-sub">conditions in dataset</div>
+          </div>
+
+          <div class="gs-stat">
+            <div class="gs-stat-label">Average Expression</div>
+            <div class="gs-stat-value">{{ avg_expression|default("—") }}</div>
+            <div class="gs-stat-sub">mean expression level</div>
+          </div>
+        </div>
+
+        <div class="gs-panels">
+
+          <div class="gs-panel">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+                Expression Distribution
+              </div>
+              <span class="gs-tag gs-tag-green">log2 TPM</span>
+            </div>
+
+            <div class="gs-panel-body">
+              {% if expression_bars %}
+              <div class="gs-viz-bar">
+                {% for item in expression_bars %}
+                <div class="gs-bar {% if loop.index <= 2 %}hi{% endif %}" style="height: {{ item.height }}%;"
+                  title="{{ item.gene }}: {{ item.value }}">
+                </div>
+                {% endfor %}
+              </div>
+
+              <div
+                style="display:flex;justify-content:space-between;margin-top:8px;font-family:var(--gs-mono);font-size:9px;color:var(--gs-muted);">
+                {% for item in expression_bars %}
+                <span>{{ item.gene }}</span>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="gs-upload-sub">Upload a CSV to generate this chart.</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="gs-panel">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:var(--gs-accent3)"></div>
+                Top DEGs
+              </div>
+              <span class="gs-tag gs-tag-purple">fold change</span>
+            </div>
+
+            <div class="gs-panel-body">
+              <div class="gs-gene-list">
+                {% if top_degs %}
+                {% for g in top_degs %}
+                <div class="gs-gene-row">
+                  <div class="gs-gene-name">{{ g.gene }}</div>
+
+                  <div class="gs-gene-bar-bg">
+                    <div class="gs-gene-bar-fill"
+                      style="width: {{ g.width }}%; background: {% if g.direction == 'up' %}var(--gs-accent){% else %}var(--gs-accent3){% endif %};">
+                    </div>
+                  </div>
+
+                  <div class="gs-gene-val">
+                    {% if g.direction == 'up' %}
+                    +{{ g.value }}
+                    {% else %}
+                    {{ g.value }}
+                    {% endif %}
+                  </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="color:var(--gs-muted);font-size:13px;">
+                  No DEG results yet. Upload a dataset.
+                </p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="gs-panel">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:#FFB74D"></div>
+                Expression Heatmap
+              </div>
+              <span class="gs-tag" style="background:rgba(255,183,77,0.1);color:#FFB74D;">sample × gene</span>
+            </div>
+
+            <div class="gs-panel-body">
+              {% if heatmap_cells %}
+              <div class="gs-real-heatmap">
+                {% for cell in heatmap_cells %}
+                <div class="gs-real-heat-cell" title="{{ cell.gene }} | {{ cell.condition }} | {{ cell.value }}"
+                  style="opacity: {{ 0.3 + (cell.intensity / 120) }}; background: {% if cell.intensity > 80 %}#FFB74D{% elif cell.intensity > 60 %}#00C896{% elif cell.intensity > 40 %}#3D8BFF{% elif cell.intensity > 20 %}#185FA5{% else %}#042C53{% endif %};">
+                </div>
+                {% endfor %}
+              </div>
+
+              <div
+                style="display:flex;align-items:center;gap:8px;margin-top:10px;font-family:var(--gs-mono);font-size:9px;color:var(--gs-muted);">
+                <span>Low</span>
+                <div
+                  style="flex:1;height:4px;border-radius:2px;background:linear-gradient(to right,#042C53,#185FA5,#3D8BFF,#00C896,#FFB74D)">
+                </div>
+                <span>High</span>
+              </div>
+              {% else %}
+              <div class="gs-upload-sub">Upload a CSV to generate this heatmap.</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="gs-panel">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:var(--gs-accent2)"></div>
+                Dataset QC
+              </div>
+              <span class="gs-tag gs-tag-blue">quality metrics</span>
+            </div>
+
+            <div class="gs-panel-body">
+              <div class="gs-progress-row">
+
+                <div class="gs-prog-item">
+                  <div class="gs-prog-label">
+                    <span class="gs-prog-name">Rows Processed</span>
+                    <span class="gs-prog-pct">{{ qc_metrics.rows|default("0") }}</span>
+                  </div>
+                  <div class="gs-prog-bg">
+                    <div class="gs-prog-fill" style="width:100%;background:var(--gs-accent)"></div>
+                  </div>
+                </div>
+
+                <div class="gs-prog-item">
+                  <div class="gs-prog-label">
+                    <span class="gs-prog-name">Missing Values Removed</span>
+                    <span class="gs-prog-pct">{{ qc_metrics.missing_removed|default("0") }}</span>
+                  </div>
+                  <div class="gs-prog-bg">
+                    <div class="gs-prog-fill" style="width:40%;background:#FFB74D"></div>
+                  </div>
+                </div>
+
+                <div class="gs-prog-item">
+                  <div class="gs-prog-label">
+                    <span class="gs-prog-name">Unique Genes</span>
+                    <span class="gs-prog-pct">{{ qc_metrics.genes|default("0") }}</span>
+                  </div>
+                  <div class="gs-prog-bg">
+                    <div class="gs-prog-fill" style="width:70%;background:var(--gs-accent2)"></div>
+                  </div>
+                </div>
+
+                <div class="gs-prog-item">
+                  <div class="gs-prog-label">
+                    <span class="gs-prog-name">Conditions</span>
+                    <span class="gs-prog-pct">{{ qc_metrics.conditions|default("0") }}</span>
+                  </div>
+                  <div class="gs-prog-bg">
+                    <div class="gs-prog-fill" style="width:60%;background:var(--gs-accent3)"></div>
+                  </div>
+                </div>
+
+                <div class="gs-prog-item">
+                  <div class="gs-prog-label">
+                    <span class="gs-prog-name">Data Completeness</span>
+                    <span class="gs-prog-pct">{{ qc_metrics.completeness|default("0") }}%</span>
+                  </div>
+                  <div class="gs-prog-bg">
+                    <div class="gs-prog-fill"
+                      style="width: {{ qc_metrics.completeness|default('0') }}%; background:var(--gs-accent);">
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          {% if table %}
+          <div class="gs-panel wide" id="data-preview">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:var(--gs-accent2)"></div>
+                Data Preview
+              </div>
+              <span class="gs-tag gs-tag-blue">first rows</span>
+            </div>
+
+            <div class="gs-panel-body gs-table-wrap">
+              {{ table|safe }}
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="gs-panel wide" id="upload-section">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+                Upload &amp; Process New Dataset
+              </div>
+              <button class="gs-btn gs-btn-ghost" style="font-size:10px;padding:5px 12px;">Supported formats ↗</button>
+            </div>
+
+            <div class="gs-panel-body" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+              <form action="/upload" method="post" enctype="multipart/form-data">
+                <label class="gs-upload-zone" style="display:block;">
+                  <div class="gs-upload-icon">↑</div>
+                  <div class="gs-upload-title">Upload your expression matrix</div>
+                  <div class="gs-upload-sub">CSV file with gene, expression, and condition columns</div>
+
+                  <input type="file" name="file" accept=".csv" required style="margin-top:12px;">
+
+                  <div class="gs-pill-row" style="justify-content:center;margin-top:12px;">
+                    <span class="gs-tag gs-tag-green">bulk RNA-seq</span>
+                    <span class="gs-tag gs-tag-blue">CSV upload</span>
+                    <span class="gs-tag gs-tag-purple">expression data</span>
+                  </div>
+                </label>
+
+                <div style="margin-top:12px;text-align:center;">
+                  <button class="gs-btn gs-btn-primary" type="submit">Upload &amp; Analyze</button>
+                </div>
+              </form>
+
+              <div>
+                <div
+                  style="font-family:var(--gs-mono);font-size:10px;color:var(--gs-muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">
+                  Recent datasets
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--gs-border);border-radius:7px;">
+                    <div>
+                      <div style="font-size:12px;font-family:var(--gs-mono);">{{ uploaded_filename|default("No dataset
+                        uploaded") }}</div>
+                      <div style="font-size:10px;color:var(--gs-muted);margin-top:2px;">{{ num_genes|default("—") }}
+                        genes · {{ num_rows|default("—") }} rows</div>
+                    </div>
+                    <span class="gs-tag gs-tag-green">active</span>
+                  </div>
+
+                  <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--gs-border);border-radius:7px;">
+                    <div>
+                      <div style="font-size:12px;font-family:var(--gs-mono);">TCGA-BRCA-2023.h5</div>
+                      <div style="font-size:10px;color:var(--gs-muted);margin-top:2px;">18,540 genes · 1,218 samples
+                      </div>
+                    </div>
+                    <span class="gs-tag"
+                      style="background:rgba(255,255,255,0.05);color:var(--gs-muted);">archived</span>
+                  </div>
+
+                  <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--gs-border);border-radius:7px;">
+                    <div>
+                      <div style="font-size:12px;font-family:var(--gs-mono);">scRNA-pilot-v2.mtx</div>
+                      <div style="font-size:10px;color:var(--gs-muted);margin-top:2px;">32,001 genes · 4,902 cells</div>
+                    </div>
+                    <span class="gs-tag gs-tag-blue">processing</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+
+</html>

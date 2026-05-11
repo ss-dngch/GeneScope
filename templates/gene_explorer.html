@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeneScope | Gene Explorer</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <div class="gs-root">
+        <div class="gs-bg-grid"></div>
+
+        <nav class="gs-nav">
+            <div class="gs-logo">
+                <div class="gs-logo-icon">⌬</div>
+                GENESCOPE
+            </div>
+
+            <div class="gs-nav-links">
+                <a href="/" class="gs-nav-link">Dashboard</a>
+                <a href="/analysis" class="gs-nav-link">Analysis</a>
+                <a href="/visualizations" class="gs-nav-link">Visualizations</a>
+                <a href="/reports" class="gs-nav-link">Reports</a>
+            </div>
+
+            <div class="gs-badge">v2.4.1 · BETA</div>
+        </nav>
+
+        <div class="gs-main">
+            <!-- SIDEBAR -->
+            <aside class="gs-sidebar">
+                <div class="gs-sidebar-label">Workspace</div>
+            
+                <a href="/" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Overview
+                </a>
+            
+                <a href="/datasets" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Datasets
+                </a>
+            
+                <a href="/gene-explorer" class="gs-sidebar-item active">
+                    <div class="si-dot"></div> Gene Explorer
+                </a>
+            
+                <div class="gs-sidebar-label">Analysis</div>
+            
+                <a href="/visualizations" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Expression Heatmap
+                </a>
+            
+                <a href="/pca-umap" class="gs-sidebar-item">
+                    <div class="si-dot"></div> PCA / UMAP
+                </a>
+            
+                <a href="/analysis" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Differential Expr.
+                </a>
+            
+                <a href="/pathways" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Pathway Enrichment
+                </a>
+            
+                <div class="gs-sidebar-label">Export</div>
+            
+                <a href="/reports" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Reports
+                </a>
+            
+                <a href="/raw-data" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Raw Data
+                </a>
+            </aside>
+
+            <main class="gs-content">
+                <div class="gs-page-header">
+                    <div>
+                        <div class="gs-page-title">Gene Explorer</div>
+                        <div class="gs-page-sub">// search gene-level expression patterns</div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;">
+                        <a href="/#upload-section" class="gs-btn gs-btn-primary" style="text-decoration:none;">
+                            Upload Data
+                        </a>
+                    </div>
+                </div>
+
+                <div class="gs-panel wide" style="margin-bottom:16px;">
+                    <div class="gs-panel-header">
+                        <div class="gs-panel-title">
+                            <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+                            Search Gene
+                        </div>
+                        <span class="gs-tag gs-tag-green">lookup</span>
+                    </div>
+
+                    <div class="gs-panel-body" style="padding-top:18px;padding-bottom:18px;">
+                        <form action="/gene-explorer" method="post"
+                            style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+                            <input type="text" name="gene_query" placeholder="Enter gene name, e.g. BRCA1" required
+                                style="flex:1;min-width:320px;padding:12px 14px;border-radius:8px;border:1px solid var(--gs-border);background:rgba(255,255,255,0.04);color:var(--gs-text);font-family:var(--gs-mono);">
+
+                            <button class="gs-btn gs-btn-primary" type="submit">
+                                Search
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="gs-panels" style="grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="gs-panel" style="min-height:170px;">
+                        <div class="gs-panel-header">
+                            <div class="gs-panel-title">
+                                <div class="gs-panel-title-dot" style="background:var(--gs-accent2)"></div>
+                                Gene Summary
+                            </div>
+                            <span class="gs-tag gs-tag-blue">overview</span>
+                        </div>
+
+                        <div class="gs-panel-body" style="display:flex;align-items:center;">
+                            {% if selected_gene %}
+                            <p style="color:var(--gs-muted);font-size:13px;line-height:1.6;">
+                                Showing results for <strong>{{ selected_gene }}</strong>.
+                            </p>
+                            {% else %}
+                            <p style="color:var(--gs-muted);font-size:13px;line-height:1.6;">
+                                Search for a gene after uploading a dataset to view gene-level expression information.
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="gs-panel" style="min-height:170px;">
+                        <div class="gs-panel-header">
+                            <div class="gs-panel-title">
+                                <div class="gs-panel-title-dot" style="background:var(--gs-accent3)"></div>
+                                Condition Averages
+                            </div>
+                            <span class="gs-tag gs-tag-purple">expression</span>
+                        </div>
+
+                        <div class="gs-panel-body" style="display:flex;flex-direction:column;justify-content:center;">
+                            {% if gene_summary %}
+                            <div class="gs-gene-list">
+                                {% for row in gene_summary %}
+                                <div class="gs-gene-row">
+                                    <div class="gs-gene-name">{{ row.condition }}</div>
+                                    <div class="gs-gene-bar-bg">
+                                        <div class="gs-gene-bar-fill"
+                                            style="width: {{ row.width }}%; background:var(--gs-accent);">
+                                        </div>
+                                    </div>
+                                    <div class="gs-gene-val">{{ row.value }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p style="color:var(--gs-muted);font-size:13px;">
+                                Condition averages will appear here.
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if gene_table %}
+                <div class="gs-panel wide" style="margin-top:16px;">
+                    <div class="gs-panel-header">
+                        <div class="gs-panel-title">
+                            <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+                            Matching Rows
+                        </div>
+                        <span class="gs-tag gs-tag-green">gene records</span>
+                    </div>
+
+                    <div class="gs-panel-body gs-table-wrap">
+                        {{ gene_table|safe }}
+                    </div>
+                </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

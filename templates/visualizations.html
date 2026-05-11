@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeneScope | Visualizations</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+  <div class="gs-root">
+    <div class="gs-bg-grid"></div>
+
+    <nav class="gs-nav">
+      <div class="gs-logo">
+        <div class="gs-logo-icon">⌬</div>
+        GENESCOPE
+      </div>
+
+      <div class="gs-nav-links">
+        <a href="/" class="gs-nav-link">Dashboard</a>
+        <a href="/analysis" class="gs-nav-link">Analysis</a>
+        <a href="/visualizations" class="gs-nav-link active">Visualizations</a>
+        <a href="/reports" class="gs-nav-link">Reports</a>
+      </div>
+
+      <div class="gs-badge">v2.4.1 · BETA</div>
+    </nav>
+
+    <div class="gs-main">
+      <!-- SIDEBAR -->
+      <aside class="gs-sidebar">
+        <div class="gs-sidebar-label">Workspace</div>
+      
+        <a href="/" class="gs-sidebar-item">
+          <div class="si-dot"></div> Overview
+        </a>
+      
+        <a href="/datasets" class="gs-sidebar-item">
+          <div class="si-dot"></div> Datasets
+        </a>
+      
+        <a href="/gene-explorer" class="gs-sidebar-item">
+          <div class="si-dot"></div> Gene Explorer
+        </a>
+      
+        <div class="gs-sidebar-label">Analysis</div>
+      
+        <a href="/visualizations" class="gs-sidebar-item active">
+          <div class="si-dot"></div> Expression Heatmap
+        </a>
+      
+        <a href="/pca-umap" class="gs-sidebar-item">
+          <div class="si-dot"></div> PCA / UMAP
+        </a>
+      
+        <a href="/analysis" class="gs-sidebar-item">
+          <div class="si-dot"></div> Differential Expr.
+        </a>
+      
+        <a href="/pathways" class="gs-sidebar-item">
+          <div class="si-dot"></div> Pathway Enrichment
+        </a>
+      
+        <div class="gs-sidebar-label">Export</div>
+      
+        <a href="/reports" class="gs-sidebar-item">
+          <div class="si-dot"></div> Reports
+        </a>
+      
+        <a href="/raw-data" class="gs-sidebar-item">
+          <div class="si-dot"></div> Raw Data
+        </a>
+      </aside>
+
+      <main class="gs-content">
+        <div class="gs-page-header">
+          <div>
+            <div class="gs-page-title">Visualizations</div>
+            <div class="gs-page-sub">// data visualization & trends</div>
+          </div>
+
+          <div style="display:flex;gap:8px;">
+            <a href="/" class="gs-btn gs-btn-ghost" style="text-decoration:none;">← Back to Dashboard</a>
+            <a href="/#upload-section" class="gs-btn gs-btn-primary" style="text-decoration:none;">Upload Data</a>
+          </div>
+        </div>
+
+        <div class="gs-stats">
+          <div class="gs-stat">
+            <div class="gs-stat-label">Genes Detected</div>
+            <div class="gs-stat-value">{{ num_genes|default("—") }}</div>
+            <div class="gs-stat-sub">unique genes</div>
+          </div>
+
+          <div class="gs-stat">
+            <div class="gs-stat-label">Samples</div>
+            <div class="gs-stat-value">{{ num_rows|default("—") }}</div>
+            <div class="gs-stat-sub">rows / observations</div>
+          </div>
+
+          <div class="gs-stat">
+            <div class="gs-stat-label">Conditions</div>
+            <div class="gs-stat-value">{{ num_conditions|default("—") }}</div>
+            <div class="gs-stat-sub">groups compared</div>
+          </div>
+
+          <div class="gs-stat">
+            <div class="gs-stat-label">Average Expression</div>
+            <div class="gs-stat-value">{{ avg_expression|default("—") }}</div>
+            <div class="gs-stat-sub">mean expression</div>
+          </div>
+        </div>
+
+        <div class="gs-panels">
+
+          <div class="gs-panel wide">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+                Gene × Condition Heatmap
+              </div>
+              <span class="gs-tag gs-tag-green">condition averages</span>
+            </div>
+          
+            <div class="gs-panel-body">
+          
+              {% if heatmap_chart %}
+              <img src="{{ url_for('static', filename=heatmap_chart) }}" alt="Gene Condition Heatmap" class="gs-heatmap-img">
+              {% else %}
+              <p style="color:var(--gs-muted);font-size:13px;">
+                Upload a dataset with gene, expression, and condition columns to generate a heatmap.
+              </p>
+              {% endif %}
+          
+            </div>
+          </div>
+
+          <div class="gs-panel wide">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:var(--gs-accent3)"></div>
+                Condition Comparison
+              </div>
+              <span class="gs-tag gs-tag-purple">grouped expression</span>
+            </div>
+
+            <div class="gs-panel-body">
+              {% if condition_bars %}
+              <div class="gs-grouped-bars">
+                {% for gene in condition_bars %}
+                <div class="gs-grouped-bar-set">
+                  <div class="gs-grouped-bars-inner">
+                    {% for condition in gene.conditions %}
+                    <div class="gs-grouped-bar" style="height: {{ condition.height }}%;"
+                      title="{{ gene.gene }} | {{ condition.name }}: {{ condition.value }}">
+                    </div>
+                    {% endfor %}
+                  </div>
+                  <div class="gs-grouped-label">{{ gene.gene }}</div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p style="color:var(--gs-muted);font-size:13px;">
+                Upload a dataset with condition/group labels to generate this comparison chart.
+              </p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="gs-panel wide">
+            <div class="gs-panel-header">
+              <div class="gs-panel-title">
+                <div class="gs-panel-title-dot" style="background:var(--gs-accent2)"></div>
+                Visualization Notes
+              </div>
+              <span class="gs-tag gs-tag-blue">summary</span>
+            </div>
+
+            <div class="gs-panel-body">
+              <p style="color:var(--gs-muted);font-size:13px;line-height:1.6;">
+                {% if expression_bars and condition_bars %}
+                These visualizations summarize expression patterns across genes and conditions. The expression
+                distribution highlights average expression levels by gene, while the condition comparison shows how
+                expression changes across groups.
+                {% else %}
+                Charts will appear here after uploading a CSV dataset with gene, expression, and condition columns.
+                {% endif %}
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+
+</html>

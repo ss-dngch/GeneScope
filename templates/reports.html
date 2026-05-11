@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeneScope | Reports</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+<div class="gs-root">
+  <div class="gs-bg-grid"></div>
+
+  <nav class="gs-nav">
+    <div class="gs-logo">
+      <div class="gs-logo-icon">⌬</div>
+      GENESCOPE
+    </div>
+
+    <div class="gs-nav-links">
+      <a href="/" class="gs-nav-link">Dashboard</a>
+      <a href="/analysis" class="gs-nav-link">Analysis</a>
+      <a href="/visualizations" class="gs-nav-link">Visualizations</a>
+      <a href="/reports" class="gs-nav-link active">Reports</a>
+    </div>
+
+    <div class="gs-badge">v2.4.1 · BETA</div>
+  </nav>
+
+  <div class="gs-main">
+    <!-- SIDEBAR -->
+    <aside class="gs-sidebar">
+      <div class="gs-sidebar-label">Workspace</div>
+    
+      <a href="/" class="gs-sidebar-item">
+        <div class="si-dot"></div> Overview
+      </a>
+    
+      <a href="/datasets" class="gs-sidebar-item">
+        <div class="si-dot"></div> Datasets
+      </a>
+    
+      <a href="/gene-explorer" class="gs-sidebar-item">
+        <div class="si-dot"></div> Gene Explorer
+      </a>
+    
+      <div class="gs-sidebar-label">Analysis</div>
+    
+      <a href="/visualizations" class="gs-sidebar-item">
+        <div class="si-dot"></div> Expression Heatmap
+      </a>
+    
+      <a href="/pca-umap" class="gs-sidebar-item">
+        <div class="si-dot"></div> PCA / UMAP
+      </a>
+    
+      <a href="/analysis" class="gs-sidebar-item">
+        <div class="si-dot"></div> Differential Expr.
+      </a>
+    
+      <a href="/pathways" class="gs-sidebar-item">
+        <div class="si-dot"></div> Pathway Enrichment
+      </a>
+    
+      <div class="gs-sidebar-label">Export</div>
+    
+      <a href="/reports" class="gs-sidebar-item active">
+        <div class="si-dot"></div> Reports
+      </a>
+    
+      <a href="/raw-data" class="gs-sidebar-item">
+        <div class="si-dot"></div> Raw Data
+      </a>
+    </aside>
+
+    <main class="gs-content">
+      <div class="gs-page-header">
+        <div>
+          <div class="gs-page-title">Reports</div>
+          <div class="gs-page-sub">// exportable analysis summary</div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <a href="/" class="gs-btn gs-btn-ghost" style="text-decoration:none;">← Back to Dashboard</a>
+          <a href="/download-report" class="gs-btn gs-btn-primary" style="text-decoration:none;">Download Report</a>
+        </div>
+      </div>
+
+      <div class="gs-stats">
+        <div class="gs-stat">
+          <div class="gs-stat-label">Dataset</div>
+          <div class="gs-stat-value" style="font-size:16px;">{{ uploaded_filename|default("None") }}</div>
+          <div class="gs-stat-sub">active file</div>
+        </div>
+
+        <div class="gs-stat">
+          <div class="gs-stat-label">Genes</div>
+          <div class="gs-stat-value">{{ num_genes|default("—") }}</div>
+          <div class="gs-stat-sub">detected genes</div>
+        </div>
+
+        <div class="gs-stat">
+          <div class="gs-stat-label">Samples</div>
+          <div class="gs-stat-value">{{ num_rows|default("—") }}</div>
+          <div class="gs-stat-sub">rows / observations</div>
+        </div>
+
+        <div class="gs-stat">
+          <div class="gs-stat-label">Top DEGs</div>
+          <div class="gs-stat-value">{{ top_degs|length if top_degs else 0 }}</div>
+          <div class="gs-stat-sub">ranked genes</div>
+        </div>
+      </div>
+
+      <div class="gs-panels">
+
+        <div class="gs-panel wide">
+          <div class="gs-panel-header">
+            <div class="gs-panel-title">
+              <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+              Report Summary
+            </div>
+            <span class="gs-tag gs-tag-green">overview</span>
+          </div>
+
+          <div class="gs-panel-body">
+            <p style="color:var(--gs-muted);font-size:13px;line-height:1.7;">
+              {% if uploaded_filename and uploaded_filename != "No dataset uploaded" %}
+                GeneScope analyzed <strong>{{ uploaded_filename }}</strong>, containing
+                <strong>{{ num_rows }}</strong> rows, <strong>{{ num_genes }}</strong> unique genes,
+                and <strong>{{ num_conditions }}</strong> conditions. The average expression level was
+                <strong>{{ avg_expression }}</strong>.
+              {% else %}
+                Upload a dataset from the dashboard to generate a report.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <div class="gs-panel">
+          <div class="gs-panel-header">
+            <div class="gs-panel-title">
+              <div class="gs-panel-title-dot" style="background:var(--gs-accent3)"></div>
+              Top Differentially Expressed Genes
+            </div>
+            <span class="gs-tag gs-tag-purple">DEGs</span>
+          </div>
+
+          <div class="gs-panel-body">
+            <div class="gs-gene-list">
+              {% if top_degs %}
+                {% for g in top_degs %}
+                  <div class="gs-gene-row">
+                    <div class="gs-gene-name">{{ g.gene }}</div>
+                    <div class="gs-gene-bar-bg">
+                      <div class="gs-gene-bar-fill"
+                           style="width: {{ g.width }}%; background: {% if g.direction == 'up' %}var(--gs-accent){% else %}var(--gs-accent3){% endif %};">
+                      </div>
+                    </div>
+                    <div class="gs-gene-val">{{ g.value }}</div>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <p style="color:var(--gs-muted);font-size:13px;">No DEG results available yet.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="gs-panel">
+          <div class="gs-panel-header">
+            <div class="gs-panel-title">
+              <div class="gs-panel-title-dot" style="background:var(--gs-accent2)"></div>
+              Export Options
+            </div>
+            <span class="gs-tag gs-tag-blue">download</span>
+          </div>
+
+          <div class="gs-panel-body">
+            <p style="color:var(--gs-muted);font-size:13px;line-height:1.7;">
+              Download a plain-text report containing dataset statistics, top changed genes, and a brief analysis summary.
+            </p>
+
+            <div style="margin-top:16px;">
+              <a href="/download-report" class="gs-btn gs-btn-primary" style="text-decoration:none;">
+                Download Report
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GeneScope Results</title>
+</head>
+<body>
+    <h1>Analysis Results</h1>
+
+    <h2>Summary</h2>
+    <p>Total Rows: {{ num_rows }}</p>
+    <p>Unique Genes: {{ num_genes }}</p>
+    <p>Average Expression: {{ avg_expression }}</p>
+
+    <h2>Preview</h2>
+    {{ table|safe }}
+
+    <h2>Chart</h2>
+    <img src="{{ url_for('static', filename=chart) }}" width="600">
+
+    <br><br>
+    <a href="/">Upload another file</a>
+</body>
+</html>

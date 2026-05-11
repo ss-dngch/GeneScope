@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select Columns</title>
+</head>
+<body style="font-family:sans-serif; padding:40px;">
+
+  <h2>Select Dataset Columns</h2>
+  <p>File: {{ filename }}</p>
+
+  <form action="/analyze" method="post">
+
+    <label>Gene Column:</label><br>
+    <select name="gene">
+      {% for col in columns %}
+        <option value="{{ col }}">{{ col }}</option>
+      {% endfor %}
+    </select>
+
+    <br><br>
+
+    <label>Expression Column:</label><br>
+    <select name="expression">
+      {% for col in columns %}
+        <option value="{{ col }}">{{ col }}</option>
+      {% endfor %}
+    </select>
+
+    <br><br>
+
+    <label>Condition Column:</label><br>
+    <select name="condition">
+      {% for col in columns %}
+        <option value="{{ col }}">{{ col }}</option>
+      {% endfor %}
+    </select>
+
+    <br><br>
+
+    <button type="submit">Run Analysis</button>
+
+  </form>
+
+</body>
+</html>

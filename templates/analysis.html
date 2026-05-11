@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GeneScope | Analysis</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+<div class="gs-root">
+  <div class="gs-bg-grid"></div>
+
+  <!-- NAV -->
+  <nav class="gs-nav">
+    <div class="gs-logo">
+      <div class="gs-logo-icon">⌬</div>
+      GENESCOPE
+    </div>
+
+    <div class="gs-nav-links">
+      <a href="/" class="gs-nav-link">Dashboard</a>
+      <a href="/analysis" class="gs-nav-link active">Analysis</a>
+      <a href="/visualizations" class="gs-nav-link">Visualizations</a>
+      <a href="/reports" class="gs-nav-link">Reports</a>
+    </div>
+
+    <div class="gs-badge">v2.4.1 · BETA</div>
+  </nav>
+
+  <div class="gs-main">
+
+    <!-- SIDEBAR -->
+    <aside class="gs-sidebar">
+      <div class="gs-sidebar-label">Workspace</div>
+    
+      <a href="/" class="gs-sidebar-item">
+        <div class="si-dot"></div> Overview
+      </a>
+    
+      <a href="/datasets" class="gs-sidebar-item">
+        <div class="si-dot"></div> Datasets
+      </a>
+    
+      <a href="/gene-explorer" class="gs-sidebar-item">
+        <div class="si-dot"></div> Gene Explorer
+      </a>
+    
+      <div class="gs-sidebar-label">Analysis</div>
+    
+      <a href="/visualizations" class="gs-sidebar-item">
+        <div class="si-dot"></div> Expression Heatmap
+      </a>
+    
+      <a href="/pca-umap" class="gs-sidebar-item">
+        <div class="si-dot"></div> PCA / UMAP
+      </a>
+    
+      <a href="/analysis" class="gs-sidebar-item active">
+        <div class="si-dot"></div> Differential Expr.
+      </a>
+    
+      <a href="/pathways" class="gs-sidebar-item">
+        <div class="si-dot"></div> Pathway Enrichment
+      </a>
+    
+      <div class="gs-sidebar-label">Export</div>
+    
+      <a href="/reports" class="gs-sidebar-item">
+        <div class="si-dot"></div> Reports
+      </a>
+    
+      <a href="/raw-data" class="gs-sidebar-item">
+        <div class="si-dot"></div> Raw Data
+      </a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="gs-content">
+
+      <!-- HEADER -->
+      <div class="gs-page-header">
+        <div>
+          <div class="gs-page-title">Analysis</div>
+          <div class="gs-page-sub">// differential expression overview</div>
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <a href="/" class="gs-btn gs-btn-ghost" style="text-decoration:none;">← Back to Dashboard</a>
+          <a href="/#upload-section" class="gs-btn gs-btn-primary" style="text-decoration:none;">Run Analysis</a>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="gs-stats">
+        <div class="gs-stat">
+          <div class="gs-stat-label">Analysis Type</div>
+          <div class="gs-stat-value" style="font-size:18px;">DEG</div>
+          <div class="gs-stat-sub">differential expression</div>
+        </div>
+
+        <div class="gs-stat">
+          <div class="gs-stat-label">Dataset Status</div>
+          <div class="gs-stat-value" style="font-size:18px;">Ready</div>
+          <div class="gs-stat-sub">CSV processed</div>
+        </div>
+
+        <div class="gs-stat">
+          <div class="gs-stat-label">Comparison</div>
+          <div class="gs-stat-value" style="font-size:18px;">Groups</div>
+          <div class="gs-stat-sub">condition-based</div>
+        </div>
+
+        <div class="gs-stat">
+          <div class="gs-stat-label">Top Genes</div>
+          <div class="gs-stat-value" style="font-size:18px;">
+            {{ top_degs|length if top_degs else 0 }}
+          </div>
+          <div class="gs-stat-sub">ranked DEGs</div>
+        </div>
+      </div>
+
+      <!-- PANELS -->
+      <div class="gs-panels">
+
+        <!-- SUMMARY -->
+        <div class="gs-panel">
+          <div class="gs-panel-header">
+            <div class="gs-panel-title">
+              <div class="gs-panel-title-dot" style="background:var(--gs-accent3)"></div>
+              Differential Expression Summary
+            </div>
+            <span class="gs-tag gs-tag-purple">analysis</span>
+          </div>
+
+          <div class="gs-panel-body">
+            <p style="color:var(--gs-muted);font-size:13px;line-height:1.6;">
+              {% if top_degs %}
+                GeneScope identified {{ top_degs|length }} top changed genes based on the largest expression differences between conditions.
+                These genes represent the strongest biological signals in your dataset.
+              {% else %}
+                Upload a dataset from the dashboard to generate a differential expression summary.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- TOP DEGS -->
+        <div class="gs-panel">
+          <div class="gs-panel-header">
+            <div class="gs-panel-title">
+              <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+              Top Changed Genes
+            </div>
+            <span class="gs-tag gs-tag-green">DEGs</span>
+          </div>
+
+          <div class="gs-panel-body">
+            <div class="gs-gene-list">
+
+              {% if top_degs %}
+                {% for g in top_degs %}
+                <div class="gs-gene-row">
+                  <div class="gs-gene-name">{{ g.gene }}</div>
+
+                  <div class="gs-gene-bar-bg">
+                    <div class="gs-gene-bar-fill"style="width: {{ g.width }}%; background: {% if g.direction == 'up' %}var(--gs-accent){% else %}var(--gs-accent3){% endif %};"
+                         >
+                    </div>
+                  </div>
+
+                <div class="gs-gene-val">
+                    {% if g.direction == 'up' %}
+                        +{{ g.value }}
+                    {% else %}
+                        {{ g.value }}
+                    {% endif %}
+                </div>
+                </div>
+                {% endfor %}
+              {% else %}
+                <p style="color:var(--gs-muted);font-size:13px;">
+                  Run analysis to see results.
+                </p>
+              {% endif %}
+
+            </div>
+          </div>
+        </div>
+
+        <!-- INTERPRETATION -->
+        <div class="gs-panel wide">
+          <div class="gs-panel-header">
+            <div class="gs-panel-title">
+              <div class="gs-panel-title-dot" style="background:var(--gs-accent2)"></div>
+              Interpretation
+            </div>
+            <span class="gs-tag gs-tag-blue">plain-language summary</span>
+          </div>
+
+          <div class="gs-panel-body">
+            <p style="color:var(--gs-muted);font-size:13px;line-height:1.6;">
+              {% if top_degs %}
+                The most differentially expressed gene is <strong>{{ top_degs[0].gene }}</strong>,
+                with a difference of {{ top_degs[0].value }} between conditions.
+                This suggests it may be highly sensitive to condition changes in your dataset.
+              {% else %}
+                Once data is uploaded, this section will explain key biological insights from your dataset.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

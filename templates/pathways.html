@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeneScope | Pathway Enrichment</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <div class="gs-root">
+        <div class="gs-bg-grid"></div>
+
+        <nav class="gs-nav">
+            <div class="gs-logo">
+                <div class="gs-logo-icon">⌬</div>
+                GENESCOPE
+            </div>
+
+            <div class="gs-nav-links">
+                <a href="/" class="gs-nav-link">Dashboard</a>
+                <a href="/analysis" class="gs-nav-link">Analysis</a>
+                <a href="/visualizations" class="gs-nav-link">Visualizations</a>
+                <a href="/reports" class="gs-nav-link">Reports</a>
+            </div>
+
+            <div class="gs-badge">v2.4.1 · BETA</div>
+        </nav>
+
+        <div class="gs-main">
+
+            <aside class="gs-sidebar">
+                <div class="gs-sidebar-label">Workspace</div>
+
+                <a href="/" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Overview
+                </a>
+
+                <a href="/datasets" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Datasets
+                </a>
+
+                <a href="/gene-explorer" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Gene Explorer
+                </a>
+
+                <div class="gs-sidebar-label">Analysis</div>
+
+                <a href="/visualizations" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Expression Heatmap
+                </a>
+
+                <a href="/pca-umap" class="gs-sidebar-item">
+                    <div class="si-dot"></div> PCA / UMAP
+                </a>
+
+                <a href="/analysis" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Differential Expr.
+                </a>
+
+                <a href="/pathways" class="gs-sidebar-item active">
+                    <div class="si-dot"></div> Pathway Enrichment
+                </a>
+
+                <div class="gs-sidebar-label">Export</div>
+
+                <a href="/reports" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Reports
+                </a>
+
+                <a href="/raw-data" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Raw Data
+                </a>
+            </aside>
+
+            <main class="gs-content">
+
+                <div class="gs-page-header">
+                    <div>
+                        <div class="gs-page-title">Pathway Enrichment</div>
+                        <div class="gs-page-sub">// biological interpretation & pathway analysis</div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;">
+                        <a href="/" class="gs-btn gs-btn-ghost" style="text-decoration:none;">
+                            ← Back to Dashboard
+                        </a>
+
+                        <a href="/#upload-section" class="gs-btn gs-btn-primary" style="text-decoration:none;">
+                            Upload Data
+                        </a>
+                    </div>
+                </div>
+
+                <div class="gs-panels">
+
+                    <div class="gs-panel wide">
+
+                        <div class="gs-panel-header">
+                            <div class="gs-panel-title">
+                                <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+                                Enrichment Plot
+                            </div>
+
+                            <span class="gs-tag gs-tag-green">KEGG pathways</span>
+                        </div>
+
+                        <div class="gs-panel-body">
+
+                            {% if enrichment_chart %}
+
+                            <img src="{{ url_for('static', filename=enrichment_chart) }}" alt="Pathway Enrichment Plot"
+                                class="gs-heatmap-img">
+
+                            {% else %}
+
+                            <div class="gs-placeholder-viz">
+                                <div class="gs-placeholder-orbit"></div>
+
+                                <p>
+                                    Upload a dataset with enough differentially expressed genes
+                                    to generate pathway enrichment.
+                                </p>
+                            </div>
+
+                            {% endif %}
+
+                        </div>
+                    </div>
+
+                    <div class="gs-panel wide">
+
+                        <div class="gs-panel-header">
+                            <div class="gs-panel-title">
+                                <div class="gs-panel-title-dot" style="background:var(--gs-accent3)"></div>
+                                Top Enriched Pathways
+                            </div>
+
+                            <span class="gs-tag gs-tag-purple">biological signals</span>
+                        </div>
+
+                        <div class="gs-panel-body">
+
+                            {% if enriched_pathways %}
+
+                            <div class="gs-deg-list">
+
+                                {% for pathway in enriched_pathways %}
+
+                                <div class="gs-deg-row">
+
+                                    <span style="max-width:260px;">
+                                        {{ pathway.pathway }}
+                                    </span>
+
+                                    <div class="gs-deg-bar-track">
+                                        <div class="gs-deg-bar"
+                                            style="width: {{ pathway.width }}%; background:#00C896;">
+                                        </div>
+                                    </div>
+
+                                    <span>
+                                        {{ pathway.score }}
+                                    </span>
+
+                                </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                            {% else %}
+
+                            <p style="color:var(--gs-muted);font-size:13px;line-height:1.6;">
+                                No statistically significant pathway enrichment was detected.
+                                Larger gene sets or real transcriptomics datasets may be required
+                                to identify enriched biological pathways.
+                            </p>
+
+                            {% endif %}
+
+                        </div>
+                    </div>
+
+                    <div class="gs-panel wide">
+
+                        <div class="gs-panel-header">
+                            <div class="gs-panel-title">
+                                <div class="gs-panel-title-dot" style="background:var(--gs-accent2)"></div>
+                                Interpretation Notes
+                            </div>
+
+                            <span class="gs-tag gs-tag-blue">summary</span>
+                        </div>
+
+                        <div class="gs-panel-body">
+
+                            <p style="color:var(--gs-muted);font-size:13px;line-height:1.7;">
+
+                                Pathway enrichment identifies biological processes and signaling
+                                pathways associated with the uploaded gene expression dataset.
+                                Genes with strong expression differences are compared against
+                                curated pathway databases such as KEGG to identify potential
+                                disease mechanisms and functional relationships.
+
+                            </p>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>

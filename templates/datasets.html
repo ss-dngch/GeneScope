@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeneScope | Datasets</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <div class="gs-root">
+        <div class="gs-bg-grid"></div>
+
+        <nav class="gs-nav">
+            <div class="gs-logo">
+                <div class="gs-logo-icon">⌬</div>
+                GENESCOPE
+            </div>
+
+            <div class="gs-nav-links">
+                <a href="/" class="gs-nav-link">Dashboard</a>
+                <a href="/analysis" class="gs-nav-link">Analysis</a>
+                <a href="/visualizations" class="gs-nav-link">Visualizations</a>
+                <a href="/reports" class="gs-nav-link">Reports</a>
+            </div>
+
+            <div class="gs-badge">v2.4.1 · BETA</div>
+        </nav>
+
+        <div class="gs-main">
+            <aside class="gs-sidebar">
+                <div class="gs-sidebar-label">Workspace</div>
+
+                <a href="/" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Overview
+                </a>
+
+                <a href="/datasets" class="gs-sidebar-item active">
+                    <div class="si-dot"></div> Datasets
+                </a>
+
+                <a href="/gene-explorer" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Gene Explorer
+                </a>
+
+                <div class="gs-sidebar-label">Analysis</div>
+
+                <a href="/visualizations" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Expression Heatmap
+                </a>
+
+                <a href="/pca-umap" class="gs-sidebar-item">
+                    <div class="si-dot"></div> PCA / UMAP
+                </a>
+
+                <a href="/analysis" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Differential Expr.
+                </a>
+
+                <a href="/pathways" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Pathway Enrichment
+                </a>
+
+                <div class="gs-sidebar-label">Export</div>
+
+                <a href="/reports" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Reports
+                </a>
+
+                <a href="/raw-data" class="gs-sidebar-item">
+                    <div class="si-dot"></div> Raw Data
+                </a>
+            </aside>
+
+            <main class="gs-content">
+                <div class="gs-page-header">
+                    <div>
+                        <div class="gs-page-title">Datasets</div>
+                        <div class="gs-page-sub">// dataset overview & management</div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;">
+                        <a href="/" class="gs-btn gs-btn-ghost" style="text-decoration:none;">
+                            ← Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <div class="gs-panel" style="margin-bottom:18px;">
+                    <div class="gs-panel-header">
+                        <div class="gs-panel-title">
+                            <div class="gs-panel-title-dot" style="background:var(--gs-accent)"></div>
+                            Active Dataset
+                        </div>
+                        <span class="gs-tag gs-tag-green">loaded</span>
+                    </div>
+
+                    <div class="gs-panel-body" style="padding:22px;">
+                        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;">
+                    
+                            <div class="gs-stat">
+                                <div class="gs-stat-label">Filename</div>
+                                <div class="gs-stat-value" style="font-size:14px;">
+                                    {{ uploaded_filename|default("—") }}
+                                </div>
+                                <div class="gs-stat-sub">active file</div>
+                            </div>
+                    
+                            <div class="gs-stat">
+                                <div class="gs-stat-label">Rows</div>
+                                <div class="gs-stat-value">{{ num_rows|default("0") }}</div>
+                                <div class="gs-stat-sub">records</div>
+                            </div>
+                    
+                            <div class="gs-stat">
+                                <div class="gs-stat-label">Genes</div>
+                                <div class="gs-stat-value">{{ num_genes|default("0") }}</div>
+                                <div class="gs-stat-sub">unique genes</div>
+                            </div>
+                    
+                            <div class="gs-stat">
+                                <div class="gs-stat-label">Conditions</div>
+                                <div class="gs-stat-value">{{ num_conditions|default("0") }}</div>
+                                <div class="gs-stat-sub">groups</div>
+                            </div>
+                    
+                            <div class="gs-stat">
+                                <div class="gs-stat-label">Average Expression</div>
+                                <div class="gs-stat-value">{{ avg_expression|default("0") }}</div>
+                                <div class="gs-stat-sub">mean expression</div>
+                            </div>
+                    
+                        </div>
+                
+                    </div>
+                </div>
+
+                {% if table %}
+                <div class="gs-panel" style="margin-bottom:18px;">
+                    <div class="gs-panel-header">
+                        <div class="gs-panel-title">
+                            <div class="gs-panel-title-dot" style="background:var(--gs-accent2)"></div>
+                            Data Preview
+                        </div>
+                        <span class="gs-tag gs-tag-blue">first rows</span>
+                    </div>
+
+                    <div class="gs-panel-body gs-table-wrap">
+                        {{ table|safe }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="gs-panel" style="margin-bottom:18px;">
+                    <div class="gs-panel-header">
+                        <div class="gs-panel-title">
+                            <div class="gs-panel-title-dot" style="background:var(--gs-accent3)"></div>
+                            Actions
+                        </div>
+                    </div>
+
+                    <div class="gs-panel-body" style="display:flex;gap:12px;flex-wrap:wrap;">
+                        <a href="/analysis" class="gs-btn gs-btn-primary" style="text-decoration:none;">
+                            Run Analysis
+                        </a>
+
+                        <a href="/visualizations" class="gs-btn gs-btn-ghost" style="text-decoration:none;">
+                            View Visualizations
+                        </a>
+
+                        <a href="/reports" class="gs-btn gs-btn-ghost" style="text-decoration:none;">
+                            Generate Report
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+</body>
+
+</html>
