@@ -22,14 +22,14 @@
 
 <h2>Screenshots</h2>
 
-<h3>PCA / UMAP Analysis</h3>
-<img src="screenshots/pca_umap.png" alt="PCA and UMAP analysis screen" width="800">
+<h3>Expression Dashboard</h3>
+<img src="screenshots/dashboard.png" alt="GeneScope dashboard screen" width="800">
 
 <h3>Gene × Condition Heatmap</h3>
 <img src="screenshots/heatmap.png" alt="Gene condition heatmap screen" width="800">
 
-<h3>Expression Dashboard</h3>
-<img src="screenshots/dashboard.png" alt="GeneScope dashboard screen" width="800">
+<h3>PCA / UMAP Analysis</h3>
+<img src="screenshots/pca_umap.png" alt="PCA and UMAP analysis screen" width="800">
 
 <h2>Features</h2>
 
